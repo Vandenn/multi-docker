@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t evanlivelo/react-test -f ./client/Dockerfile.dev ./client/Dockerfile.dev
+
+script:
+  - docker run evanlivelo/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t evanlivelo/multi-client ./client
+  - docker build -t evanlivelo/multi-nginx ./nginx
+  - docker build -t evanlivelo/multi-server ./server
+  - docker build -t evanlivelo/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push evanlivelo/multi-client
+  - docker push evanlivelo/multi-nginx
+  - docker push evanlivelo/multi-server
+  - docker push evanlivelo/multi-worker
